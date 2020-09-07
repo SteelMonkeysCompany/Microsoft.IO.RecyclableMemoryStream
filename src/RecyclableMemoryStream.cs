@@ -236,7 +236,6 @@ namespace Microsoft.IO
                 this.AllocationStack = Environment.StackTrace;
             }
 
-            RecyclableMemoryStreamManager.Events.Writer.MemoryStreamCreated(this.id, this.tag, requestedSize);
             this.memoryManager.ReportStreamCreated();
         }
         #endregion
@@ -257,20 +256,8 @@ namespace Microsoft.IO
         {
             if (Interlocked.CompareExchange(ref this.disposedState, 1, 0) != 0)
             {
-                string doubleDisposeStack = null;
-                if (this.memoryManager.GenerateCallStacks)
-                {
-                    doubleDisposeStack = Environment.StackTrace;
-                }
-
-                RecyclableMemoryStreamManager.Events.Writer.MemoryStreamDoubleDispose(this.id, this.tag,
-                                                                                     this.AllocationStack,
-                                                                                     this.DisposeStack,
-                                                                                     doubleDisposeStack);
                 return;
             }
-
-            RecyclableMemoryStreamManager.Events.Writer.MemoryStreamDisposed(this.id, this.tag);
 
             if (this.memoryManager.GenerateCallStacks)
             {
@@ -286,8 +273,6 @@ namespace Microsoft.IO
             else
             {
                 // We're being finalized.
-
-                RecyclableMemoryStreamManager.Events.Writer.MemoryStreamFinalized(this.id, this.tag, this.AllocationStack);
 
 #if !NETSTANDARD1_4
                 if (AppDomain.CurrentDomain.IsFinalizingForUnload())
@@ -989,10 +974,6 @@ namespace Microsoft.IO
         {
             if (newCapacity > this.memoryManager.MaximumStreamCapacity && this.memoryManager.MaximumStreamCapacity > 0)
             {
-                RecyclableMemoryStreamManager.Events.Writer.MemoryStreamOverCapacity(newCapacity,
-                                                                                    this.memoryManager
-                                                                                        .MaximumStreamCapacity, this.tag,
-                                                                                    this.AllocationStack);
                 throw new InvalidOperationException("Requested capacity is too large: " + newCapacity + ". Limit is " +
                                                     this.memoryManager.MaximumStreamCapacity);
             }
